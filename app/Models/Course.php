@@ -12,8 +12,15 @@ class Course extends Model
     protected $fillable = [
         'title',
         'description',
+        'category',
+        'author',
         'price',
+        'photo',
         'level',
+        'lectures',
+        'language',
+        'duration',
+        'students',
     ];
 
     public function category() {
