@@ -17,15 +17,11 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->string('description');
-            $table->string('category');
-            $table->string('author');
-            $table->string('price');
-            $table->string('photo');
-            $table->string('level');
-            $table->string('lectures');
-            $table->string('language');
-            $table->string('duration');
-            $table->string('students');
+            $table->bigInteger('instructor_id')->unsigned();
+            $table->timestamp('started_at')->nullable();
+            $table->timestamp('finished_at')->nullable();
+            $table->foreign('instructor_id')->references('id')->on('users');
+            $table->enum('status', ['enabled', 'disabled'])->default('enabled');
             $table->timestamps();
         });
     }
