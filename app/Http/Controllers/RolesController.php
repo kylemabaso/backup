@@ -12,9 +12,11 @@ class RolesController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $roles = Role::orderBy('id','DESC')->paginate(5);
+        return view('system.admin.roles.index',compact('roles'))
+            ->with('i', ($request->input('page', 1) - 1) * 5);
     }
 
     /**
@@ -24,7 +26,8 @@ class RolesController extends Controller
      */
     public function create()
     {
-        //
+        $permissions = Permission::get();
+        return view('system.admin.roles.create', compact('permissions'));
     }
 
     /**
@@ -35,51 +38,80 @@ class RolesController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $this->validate($request, [
+            'name' => 'required|unique:roles,name',
+            'permission' => 'required',
+        ]);
+
+        $role = Role::create(['name' => $request->get('name')]);
+        $role->syncPermissions($request->get('permission'));
+
+        return redirect()->route('system.admin.roles.index')
+            ->with('success','Role created successfully');
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Role  $roles
+     * @param  \App\Models\Role  $role
      * @return \Illuminate\Http\Response
      */
-    public function show(Role $roles)
+    public function show(Role $role)
     {
-        //
+        $role = $role;
+        $rolePermissions = $role->permissions;
+
+        return view('system.admin.roles.show', compact('role', 'rolePermissions'));
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Role  $roles
+     * @param  \App\Models\Role  $role
      * @return \Illuminate\Http\Response
      */
-    public function edit(Role $roles)
+    public function edit(Role $role)
     {
-        //
+        $role = $role;
+        $rolePermissions = $role->permissions->pluck('name')->toArray();
+        $permissions = Permission::get();
+
+        return view('system.admin.roles.edit', compact('role', 'rolePermissions', 'permissions'));
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Role  $roles
+     * @param  \App\Models\Role  $role
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Role $roles)
+    public function update(Role $role, Request $request)
     {
-        //
+        $this->validate($request, [
+            'name' => 'required',
+            'permission' => 'required',
+        ]);
+
+        $role->update($request->only('name'));
+
+        $role->syncPermissions($request->get('permission'));
+
+        return redirect()->route('system.admin.roles.index')
+            ->with('success','Role updated successfully');
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Role  $roles
+     * @param  \App\Models\Role  $role
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Role $roles)
+    public function destroy(Role $role)
     {
-        //
+        $role->delete();
+
+        return redirect()->route('system.admin.roles.index')
+            ->with('success','Role deleted successfully');
     }
 }
